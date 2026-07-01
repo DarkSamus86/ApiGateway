@@ -7,9 +7,34 @@ spring:
       server:
         webflux:
           routes:
+            # Frontend routes (root path)
+            - id: frontend
+              uri: http://dev-frontend-service:80
+              predicates:
+                - Path=/
+              order: -1
+
+            # Webjars
+            - id: webjars
+              uri: http://dev-library-service:80
+              predicates:
+                - Path=/webjars/**
+
+            # Swagger UI
+            - id: swagger-ui
+              uri: http://dev-library-service:80
+              predicates:
+                - Path=/swagger-ui/**
+
+            # API docs
+            - id: api-docs
+              uri: http://dev-library-service:80
+              predicates:
+                - Path=/v3/api-docs/**
+
             # Auth routes
             - id: auth
-              uri: http://localhost:8081
+              uri: http://dev-library-service:80
               predicates:
                 - Path=/auth/**
               filters:
@@ -22,7 +47,7 @@ spring:
 
             # User routes
             - id: user
-              uri: http://localhost:8081
+              uri: http://dev-library-service:80
               predicates:
                 - Path=/user/**
               filters:
@@ -33,11 +58,11 @@ spring:
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@remoteAddrKeyResolver}"
 
-            # Book routes
-            - id: books
-              uri: http://localhost:8081
+            # API routes (включая /api/v1/books)
+            - id: api
+              uri: http://dev-library-service:80
               predicates:
-                - Path=/api/v1/books/**
+                - Path=/api/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -48,7 +73,7 @@ spring:
 
             # Admin routes
             - id: admin
-              uri: http://localhost:8081
+              uri: http://dev-library-service:80
               predicates:
                 - Path=/admin/**
               filters:
@@ -61,6 +86,8 @@ spring:
 
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+            - RemoveResponseHeader=Server
+            - AddResponseHeader=X-Frame-Options, DENY
 
   data:
     redis:
