@@ -7,13 +7,6 @@ spring:
       server:
         webflux:
           routes:
-            # Frontend routes (root path)
-            - id: frontend
-              uri: http://dev-frontend-service:80
-              predicates:
-                - Path=/
-              order: -1
-
             # Webjars
             - id: webjars
               uri: http://dev-library-service:80
@@ -84,6 +77,12 @@ spring:
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@remoteAddrKeyResolver}"
 
+            # Frontend fallback (SPA assets, client-side routes) - must be last
+            - id: frontend
+              uri: http://dev-frontend-service:80
+              predicates:
+                - Path=/**
+              order: 100
 
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
