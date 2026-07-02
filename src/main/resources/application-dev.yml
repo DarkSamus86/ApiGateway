@@ -84,6 +84,25 @@ spring:
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@remoteAddrKeyResolver}"
 
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins:
+                  - "http://localhost:3000"
+                  - "http://localhost:5173"
+                  - "http://dev-frontend-service"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowed-headers:
+                  - "*"
+                allow-credentials: true
+                max-age: 3600
+
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
             - RemoveResponseHeader=Server
@@ -108,10 +127,27 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,metrics,loggers
+      base-path: /actuator
   endpoint:
     gateway:
       enabled: true
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: true
+  info:
+    java:
+      enabled: true
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ApiGateway
+    version: 0.0.1-SNAPSHOT
+    description: API Gateway for Library Management System
 
 # Logging
 logging:
