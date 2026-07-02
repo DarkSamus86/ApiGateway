@@ -1,0 +1,28 @@
+name: Dev deploy to Kubernetes
+on:
+  push:
+    branches: [dev]
+jobs:
+  build-and-deploy:
+    runs-on: host
+    steps:
+      - name: Checkout code
+        run: |
+          git config --global http.sslVerify false
+          git clone https://ro8otov:${{ secrets.runner_token }}@gitea.local/darksamus/ApiGateway.git .
+          git checkout ${{ github.sha }}
+      - name: Build and push Docker image
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          TAG=${SHA:0:7}
+          docker build -t registry.robotov.site/dev-apigateway:$TAG .
+          docker push registry.robotov.site/dev-apigateway:$TAG
+      - name: Deploy to Kubernetes
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          TAG=${SHA:0:7}
+          sed -i "s|image:.*dev-apigateway:.*|image: registry.robotov.site/dev-apigateway:$TAG|" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml -n dev
+          kubectl rollout status deployment/dev-apigateway -n dev --timeout=180s
