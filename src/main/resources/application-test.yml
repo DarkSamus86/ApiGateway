@@ -124,6 +124,7 @@ info:
 
 # Logging
 logging:
+  config: classpath:logback-spring.xml
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.reactive: DEBUG

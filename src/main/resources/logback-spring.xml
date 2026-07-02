@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- === Базовые настройки === -->
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="LOG_FILE_NAME" value="apigateway"/>
+    <property name="MAX_HISTORY" value="30"/>
+
+    <!-- === Консоль (JSON для отладки) === -->
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp><timeZone>UTC</timeZone></timestamp>
+                <logLevel/>
+                <message/>
+                <loggerName/>
+                <threadName/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- === Основной файл: дата в имени, БЕЗ сжатия === -->
+    <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>Asia/Yekaterinburg</timeZone>
+                    <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+                </timestamp>
+                <logLevel/>
+                <message/>
+                <loggerName>
+                    <shortenedClassNameLength>40</shortenedClassNameLength>
+                </loggerName>
+                <threadName/>
+                <mdc/>
+                <arguments/>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>2048</maxLength>
+                        <rootCauseFirst>true</rootCauseFirst>
+                    </throwableConverter>
+                </stackTrace>
+                <pattern>
+                    <pattern>
+                        {
+                        "app_name": "ApiGateway",
+                        "service": "gateway",
+                        "environment": "${ENVIRONMENT:-development}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- === Аудит-лог (отдельный файл) === -->
+    <appender name="AUDIT_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/audit.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/audit-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>Asia/Yekaterinburg</timeZone>
+                    <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+                </timestamp>
+                <logLevel/>
+                <message/>
+                <loggerName/>
+                <pattern>
+                    <pattern>
+                        {
+                        "app_name": "ApiGateway",
+                        "log_type": "audit",
+                        "service": "gateway"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- === Асинхронная запись === -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE_JSON"/>
+    </appender>
+
+    <!-- === Настройки логгеров === -->
+    <logger name="audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_JSON"/>
+        <appender-ref ref="CONSOLE_JSON"/>
+    </logger>
+
+    <logger name="org.darksamus.apigateway" level="DEBUG"/>
+    <logger name="org.springframework.cloud.gateway" level="DEBUG"/>
+    <logger name="org.springframework.data.redis" level="WARN"/>
+    <logger name="org.springframework.web.reactive" level="DEBUG"/>
+
+    <!-- === Корневой логгер === -->
+    <root level="INFO">
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="CONSOLE_JSON"/>
+    </root>
+
+</configuration>
