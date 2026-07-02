@@ -1,0 +1,9 @@
+build/
+.gradle/
+.idea/
+*.iml
+logs/
+.git/
+.gitignore
+*.md
+test.sh
