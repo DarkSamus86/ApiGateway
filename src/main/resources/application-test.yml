@@ -78,8 +78,24 @@ spring:
                 allow-credentials: true
                 max-age: 3600
 
+      filter:
+        local-response-cache:
+          enabled: true
+          max-memory: 512MB
+          ttl: 300
+          request:
+            methods:
+              - GET
+            headers:
+              include:
+                - Accept
+                - Accept-Language
+
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+            - name: LocalResponseCache
+              args:
+                ttl: 300
 
   data:
     redis:
@@ -128,3 +144,9 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.reactive: DEBUG
+
+# Gateway Cache
+gateway:
+  cache:
+    enabled: true
+    ttl: 300
