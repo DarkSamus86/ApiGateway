@@ -142,3 +142,9 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.reactive: DEBUG
+
+# Gateway Cache
+gateway:
+  cache:
+    enabled: true
+    ttl: 300
